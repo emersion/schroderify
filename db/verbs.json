@@ -45,6 +45,67 @@
 				"fr_FR":"tenir/s'arr&ecirc;ter"
 			}
 		},
+		"sich verhalten":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"se comporter"
+			}
+		},
+		"sich unterhalten":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"discuter"
+			}
+		},
+		"lassen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"laisser"
+			}
+		},
+		"verlassen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"quitter"
+			}
+		},
+		"entlassen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"renvoyer"
+			}
+		},
+		"laufen":{
+			"declination":"a-auml-ie-a",
+			"type":"paradoxal",
+			"meaning":{
+				"fr_FR":"marcher, courir"
+			}
+		},
+		"raten":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"conseiller"
+			}
+		},
+		"ab/raten":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"d&eacute;conseiller"
+			}
+		},
+		"verraten":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"trahir"
+			}
+		},
+		"schalfen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"dormir"
+			}
+		},
 
 		"fahren":{
 			"declination":"a-auml-u-a",

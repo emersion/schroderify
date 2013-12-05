@@ -88,8 +88,8 @@ $(function() {
 			$goodProgress.width(goodPercentage + '%');
 			$badProgress.width(badPercentage + '%');
 
-			$goodProgress.find('.sr-only').html(Math.round(goodPercentage) + '%');
-			$badProgress.find('.sr-only').html(Math.round(badPercentage) + '%');
+			$goodProgress.find('.sr-only').html(Math.round(goodPercentage) + '%, '+score.answers.good+' r&eacute;ussites');
+			$badProgress.find('.sr-only').html(Math.round(badPercentage) + '% '+score.answers.bad+' &eacute;checs');
 
 			$scoreCtn.show();
 		};

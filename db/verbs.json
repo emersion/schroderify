@@ -31,6 +31,64 @@
 			"meaning":{
 				"fr_FR":"attraper"
 			}
+		},
+		"an/fangen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"commencer"
+			}
+		},
+		"halten":{
+			"declination":"a-auml-ie-a",
+			"type":"paradoxal",
+			"meaning":{
+				"fr_FR":"tenir/s'arr&ecirc;ter"
+			}
+		},
+
+		"fahren":{
+			"declination":"a-auml-u-a",
+			"type":"paradoxal",
+			"meaning":{
+				"fr_FR":"rouler, conduire"
+			}
+		},
+		"laden":{
+			"declination":"a-auml-u-a",
+			"meaning":{
+				"fr_FR":"charger"
+			}
+		},
+		"ein/laden":{
+			"declination":"a-auml-u-a",
+			"meaning":{
+				"fr_FR":"inviter"
+			}
+		},
+		"schlagen":{
+			"declination":"a-auml-u-a",
+			"meaning":{
+				"fr_FR":"frapper"
+			}
+		},
+		"vor/schlagen":{
+			"declination":"a-auml-u-a",
+			"meaning":{
+				"fr_FR":"proposer"
+			}
+		},
+		"tragen":{
+			"declination":"a-auml-u-a",
+			"meaning":{
+				"fr_FR":"porter"
+			}
+		},
+		"wachsen":{
+			"declination":"a-auml-u-a",
+			"type":"paradoxal",
+			"meaning":{
+				"fr_FR":"cro&icirc;tre, grandir"
+			}
 		}
 	},
 	"declinations":{

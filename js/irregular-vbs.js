@@ -13,17 +13,21 @@ function shuffleArray(array) {
 }
 
 $(function() {
-	var verbs, declinations;
+	var verbs, declinations, score = {
+		answers: { good: 0, bad: 0, total: 0 }
+	};
 
 	var $startCtn = $('#start'),
 		$questionCtn = $('#question'),
 		$endCtn = $('#end'),
+		$scoreCtn = $('#score'),
 		$nextBtn = $questionCtn.find('.next a');
 
 	var showStart = function () {
 		$startCtn.show();
 		$questionCtn.hide();
 		$endCtn.hide();
+		$scoreCtn.hide();
 	};
 
 	var startQuestions = function () {
@@ -40,7 +44,7 @@ $(function() {
 
 			nextQuestion();
 		}).fail(function() {
-			alert('Sausage error.');
+			alert('Sausage Potatoe Digital error.');
 		});
 	};
 
@@ -74,12 +78,37 @@ $(function() {
 		var $questionVerb = $questionCtn.find('h2'),
 			$declCtn = $questionCtn.find('.declinations');
 
+		var updateScore = function() {
+			var $goodProgress = $scoreCtn.find('.progress-bar-success'),
+				$badProgress = $scoreCtn.find('.progress-bar-danger');
+
+			var goodPercentage = score.answers.good / score.answers.total * 100,
+				badPercentage = score.answers.bad / score.answers.total * 100;
+
+			$goodProgress.width(goodPercentage + '%');
+			$badProgress.width(badPercentage + '%');
+
+			$goodProgress.find('.sr-only').html(Math.round(goodPercentage) + '%');
+			$badProgress.find('.sr-only').html(Math.round(badPercentage) + '%');
+
+			$scoreCtn.show();
+		};
+
 		var showAnswer = function () {
 			$nextBtn.show();
 
 			$declCtn.children().off('click').addClass('btn-default').removeClass('btn-primary');
 			$declCtn.children('.answer').addClass('btn-success');
 			$declCtn.children('.clicked:not(.answer)').addClass('btn-danger');
+
+			var isGood = ($declCtn.children('.clicked.answer').length > 0);
+			if (isGood) {
+				score.answers.good++;
+			} else {
+				score.answers.bad++;
+			}
+			score.answers.total++;
+			updateScore();
 		};
 
 		$questionCtn.find('h2').html(randomVerb);
@@ -111,6 +140,8 @@ $(function() {
 	var showEnd = function() {
 		$questionCtn.hide();
 		$endCtn.show();
+
+		$scoreCtn.find('.progress-bar .sr-only').removeClass('sr-only');
 	};
 
 	$startCtn.find('a').click(function (e) {

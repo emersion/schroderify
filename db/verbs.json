@@ -1,0 +1,41 @@
+{
+	"verbs":{
+		"fallen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"tomber"
+			}
+		},
+		"gefallen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"plaire"
+			}
+		},
+		"auf/fallen":{
+			"declination":"a-auml-ie-a",
+			"type":"paradoxal",
+			"meaning":{
+				"fr_FR":"se faire remarquer"
+			}
+		},
+		"ein/fallen":{
+			"declination":"a-auml-ie-a",
+			"type":"paradoxal",
+			"meaning":{
+				"fr_FR":"venir a l'esprit"
+			}
+		},
+		"fangen":{
+			"declination":"a-auml-ie-a",
+			"meaning":{
+				"fr_FR":"attraper"
+			}
+		}
+	},
+	"declinations":{
+		"a-auml-ie-a":["a","&auml;","i(e)","a"],
+		"a-auml-u-a":["a","&auml;","u","a"],
+		"e-i-a-e":["e","i","a","e"]
+	}
+}

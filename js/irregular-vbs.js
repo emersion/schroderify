@@ -15,6 +15,8 @@ function shuffleArray(array) {
 $(function() {
 	var verbs, declinations, score = {
 		answers: { good: 0, bad: 0, total: 0 }
+	}, config = {
+		questions: 0
 	};
 
 	var $startCtn = $('#start'),
@@ -30,8 +32,15 @@ $(function() {
 		$scoreCtn.hide();
 	};
 
+	var setConfig = function() {
+		var $questionsNbr = $startCtn.find('.cfg-questions-nbr');
+
+		config.questions = parseInt($questionsNbr.val()) || 0;
+	};
+
 	var startQuestions = function () {
 		$startCtn.hide();
+		setConfig();
 
 		$.ajax({
 			url: 'db/verbs.json',
@@ -54,14 +63,15 @@ $(function() {
 			remainingVerbs = $.extend({}, verbs);
 		}
 
-		if (Object.keys(remainingVerbs).length == 0) {
+		if (Object.keys(remainingVerbs).length == 0 || (config.questions && config.questions <= score.answers.total)) {
 			showEnd();
 			return;
 		}
 
 		var randomIndex = Math.round(Math.random() * (Object.keys(remainingVerbs).length - 1)),
 			randomVerb = Object.keys(remainingVerbs)[randomIndex],
-			randomVerbData = verbs[randomVerb];
+			randomVerbData = verbs[randomVerb],
+			randomVerbMeaning = randomVerbData.meaning.fr_FR;
 
 		delete remainingVerbs[randomVerb];
 
@@ -76,7 +86,7 @@ $(function() {
 		}
 
 		var $questionVerb = $questionCtn.find('h2'),
-			$declCtn = $questionCtn.find('.declinations');
+			$declCtn = $questionCtn.find('.answers-container');
 
 		var updateScore = function() {
 			var $goodProgress = $scoreCtn.find('.progress-bar-success'),
@@ -88,8 +98,8 @@ $(function() {
 			$goodProgress.width(goodPercentage + '%');
 			$badProgress.width(badPercentage + '%');
 
-			$goodProgress.find('.sr-only').html(Math.round(goodPercentage) + '%, '+score.answers.good+' r&eacute;ussites');
-			$badProgress.find('.sr-only').html(Math.round(badPercentage) + '% '+score.answers.bad+' &eacute;checs');
+			$goodProgress.find('.sr-only').html(Math.round(goodPercentage) + '% ('+score.answers.good+' r&eacute;ussites)');
+			$badProgress.find('.sr-only').html(Math.round(badPercentage) + '% ('+score.answers.bad+' &eacute;checs)');
 
 			$scoreCtn.show();
 		};
@@ -111,7 +121,8 @@ $(function() {
 			updateScore();
 		};
 
-		$questionCtn.find('h2').html(randomVerb);
+		var paradoxalStar = (randomVerbData.type == 'paradoxal') ? '<span class="tooltip-container" data-toggle="tooltip" data-placement="bottom" title="This is a paradoxal verb. Irregular because its root changes, regular because it takes regular declinations.">*</span>' : '';
+		$questionCtn.find('h2').html(randomVerb+(paradoxalStar || '')+' ('+randomVerbMeaning+')').find('.tooltip-container').tooltip();
 		$nextBtn.hide();
 
 		$declCtn.empty();

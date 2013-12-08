@@ -1,0 +1,27 @@
+CACHE MANIFEST
+
+# HTML
+../index.html
+../irregular-vbs.html
+
+# CSS
+../css/bootstrap.min.css
+
+# DB
+../db/verbs.json
+
+# FONTS
+../fonts/glyphicons-halflings-regular.eot
+../fonts/glyphicons-halflings-regular.svg
+../fonts/glyphicons-halflings-regular.ttf
+../fonts/glyphicons-halflings-regular.woff
+
+# IMG
+../img/icon-128.png
+../img/icon-32.png
+../img/icon-48.png
+
+# JS
+../js/bootstrap.min.js
+../js/irregular-vbs.js
+../js/jquery-2.0.3.min.js

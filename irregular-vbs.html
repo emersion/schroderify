@@ -1,10 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" manifest="manifests/schroderify.appcache">
 <head>
 	<meta charset="UTF-8">
 	<title>Schr&ouml;derify</title>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="icon" type="image/png" href="img/icon-32.png" />
+	<link rel="apple-touch-icon-precomposed" href="img/icon-128.png">
 
 	<!-- Bootstrap -->
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
@@ -44,25 +47,60 @@
 
 		<div class="row">
 			<div class="col-xs-12 col-sm-4 col-md-2">
-				<input type="number" class="form-control cfg-questions-nbr" placeholder="Nombre de questions">
+				<label>
+					Questions number :
+					<input type="number" class="form-control cfg-questions-nbr" placeholder="Unlimited">
+				</label>
+			</div>
+			<div class="col-xs-12 col-sm-4 col-md-2">
+				<label>
+					Chronometer :
+					<div class="btn-group btn-group-justified cfg-chrono" data-toggle="buttons">
+						<label class="btn btn-default chrono-on">
+							<input type="radio"> On
+						</label>
+						<label class="btn btn-default active">
+							<input type="radio"> Off
+						</label>
+					</div>
+				</label>
 			</div>
 		</div>
 	</div>
 
 	<div id="question" class="container">
-		<h2></h2>
+		<h2><span class="question-inner"></span><small class="pull-right answer-comment"></small></h2>
 
 		<div class="btn-group btn-group-lg btn-group-justified answers-container" data-toggle="buttons"></div>
 
 		<br />
 
-		<div class="btn-group btn-group-lg btn-group-justified next">
-			<a href="#" class="btn btn-default">Next</a>
+		<div class="row answer-actions">
+			<div class="col-xs-12 col-sm-10">
+				<div class="btn-group btn-group-lg btn-group-justified next">
+					<a href="#" class="btn btn-primary">Next</a>
+				</div><br />
+			</div>
+			<div class="col-xs-12 col-sm-2">
+				<div class="btn-group btn-group-lg btn-group-justified stop">
+					<a href="#" class="btn btn-default">Stop</a>
+				</div>
+			</div>
 		</div>
 	</div>
 
 	<div id="end" class="container">
 		<h2>Finished!</h2>
+
+		<p class="score-time">
+			<span class="glyphicon glyphicon-time"></span><span class="score-time-inner"></span>
+		</p>
+
+		<h3 class="score-result text-center"></h3>
+
+		<div class="btn-group btn-group-lg btn-group-justified restart">
+			<a href="#" class="btn btn-primary">Try again!</a>
+		</div>
 	</div>
 
 	<br />
@@ -78,15 +116,21 @@
 		</div>
 	</div>
 
+	<div id="chronometer" class="container">
+		<h2 class="text-center"><span class="label label-default chronometer-inner">0s</span></h2>
+	</div>
+
 	<footer class="container">
 		<hr />
 		<p class="pull-right">Powered by Mme Chiche</p>
 		<p>&copy; 2013 <a href="http://emersion.fr">Emersion</a></p>
 	</footer>
 
-	<script src="https://code.jquery.com/jquery.js"></script>
+	<!-- jQuery -->
+	<script src="js/jquery-2.0.3.min.js"></script>
 	<!-- Bootstrap -->
 	<script src="js/bootstrap.min.js"></script>
+
 	<script src="js/irregular-vbs.js"></script>
 </body>
 </html>

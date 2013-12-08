@@ -1,0 +1,17 @@
+{
+  "name": "Schröderify",
+  "description": "Schröderify helps you learning Schröder's language.",
+  "launch_path": "/schroderify/",
+  "version":"0.1",
+  "icons": {
+    "128": "/schroderify/img/icon-128.png",
+    "48": "/schroderify/img/icon-48.png",
+    "32": "/schroderify/img/icon-32.png"
+  },
+  "developer": {
+    "name": "Emersion",
+    "url": "http://emersion.fr"
+  },
+  "default_locale": "en",
+  "appcache_path": "/schroderify/manifests/schroderify.appcache"
+}

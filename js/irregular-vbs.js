@@ -13,33 +13,124 @@ function shuffleArray(array) {
 }
 
 $(function() {
-	var verbs, declinations, score = {
-		answers: { good: 0, bad: 0, total: 0 }
-	}, config = {
-		questions: 0
+	var verbs, declinations, score, config = {
+		questions: 0,
+		chronometer: false
 	};
 
 	var $startCtn = $('#start'),
 		$questionCtn = $('#question'),
 		$endCtn = $('#end'),
 		$scoreCtn = $('#score'),
-		$nextBtn = $questionCtn.find('.next a');
+		$chronoCtn = $('#chronometer'),
+		$answerActionsCtn = $questionCtn.find('.answer-actions'),
+		$nextBtn = $answerActionsCtn.find('.next a'),
+		$stopBtn = $answerActionsCtn.find('.stop a'),
+		$restartBtn = $endCtn.find('.restart a');
 
+	var formatTime = function(duration) {
+		var time = new Date(duration);
+
+		var durMinutes = time.getMinutes(),
+			durSeconds = time.getSeconds(),
+			durMs = time.getMilliseconds();
+
+		var humanDur = '';
+		if (durMinutes) {
+			humanDur += ' '+durMinutes+'min';
+		}
+		if (durSeconds) {
+			humanDur += ' '+durSeconds+'s';
+		}
+		if (durMs) {
+			humanDur += ' '+durMs+'ms';
+		}
+
+		return humanDur;
+	};
+
+	var firstStart = true;
 	var showStart = function () {
-		$startCtn.show();
-		$questionCtn.hide();
-		$endCtn.hide();
-		$scoreCtn.hide();
+		score = {
+			answers: { good: 0, bad: 0, total: 0 },
+			answersTime: [],
+			startTime: 0,
+			endTime: 0,
+			result: 0
+		};
+
+		if (firstStart) {
+			$startCtn.show();
+			$questionCtn.hide();
+			$endCtn.hide();
+			$scoreCtn.hide();
+			$chronoCtn.hide();
+		} else {
+			$startCtn.slideDown();
+			$endCtn.slideUp();
+			$scoreCtn.slideUp();
+		}
+
+		firstStart = false;
 	};
 
 	var setConfig = function() {
-		var $questionsNbr = $startCtn.find('.cfg-questions-nbr');
+		var $questionsNbr = $startCtn.find('.cfg-questions-nbr'),
+			$chrono = $startCtn.find('.cfg-chrono');
 
-		config.questions = parseInt($questionsNbr.val()) || 0;
+		config.questions = Math.abs(parseInt($questionsNbr.val())) || 0;
+		config.chronometer = $chrono.find('.chrono-on').is('.active');
+	};
+
+	var chronoIntervalId = null;
+	var startChronometer = function() {
+		if (!score.startTime) {
+			score.startTime = (new Date()).getTime();
+		}
+
+		if (chronoIntervalId !== null) { //Already started
+			return;
+		}
+
+		if (score.endTime > 0) {
+			score.startTime += (new Date()).getTime() - score.endTime;
+		}
+
+		if (config.chronometer) {
+			var $chrono = $chronoCtn.find('.chronometer-inner');
+
+			var updateChrono = function() {
+				var duration = (new Date()).getTime() - score.startTime;
+				var durationSeconds = Math.round(duration / 1000);
+
+				if (!durationSeconds) {
+					return;
+				}
+
+				$chrono.html(formatTime(durationSeconds * 1000));
+			};
+
+			chronoIntervalId = setInterval(function() {
+				updateChrono();
+			}, 1000);
+			updateChrono();
+		}
+	};
+	var stopChronometer = function() {
+		score.endTime = (new Date()).getTime();
+
+		if (!chronoIntervalId) { //Not started
+			return;
+		}
+
+		if (config.chronometer) {
+			clearInterval(chronoIntervalId);
+			chronoIntervalId = null;
+		}
 	};
 
 	var startQuestions = function () {
-		$startCtn.hide();
+		$startCtn.slideUp();
 		setConfig();
 
 		$.ajax({
@@ -49,12 +140,58 @@ $(function() {
 			verbs = data.verbs;
 			declinations = data.declinations;
 
-			$questionCtn.show();
+			$questionCtn.slideDown();
+
+			if (config.chronometer) {
+				$chronoCtn.slideDown();
+			}
 
 			nextQuestion();
 		}).fail(function() {
 			alert('Sausage Potatoe Digital error.');
 		});
+	};
+
+	var showSuccessAnimation = function(centerPos) {
+		var $successCircle = $('<div></div>').addClass('question-success');
+
+		for (var i = 0; i < 0; i++) {
+			(function() {
+				var $circle = $successCircle.clone();
+
+				var before = {
+					dim: $(window).width() / 10,
+					pos: {}
+				}, after = {
+					dim: $(window).width(),
+					pos: {}
+				};
+
+				after.pos.x = centerPos.x - after.dim / 2;
+				after.pos.y = centerPos.y - after.dim / 2;
+				before.pos.x = after.pos.x + after.dim / 2 - before.dim / 2;
+				before.pos.y = after.pos.y + after.dim / 2 - before.dim / 2;
+
+				$circle.css({
+					'z-index': '-1',
+					'position': 'absolute',
+					'width': before.dim+'px',
+					'height': before.dim+'px',
+					'left': before.pos.x+'px',
+					'top': before.pos.y+'px',
+					'border-radius': '100%',
+					'background-color': 'rgb(71, 164, 71)'
+				}).prependTo('body').animate({
+					'opacity': 0,
+					'width': after.dim+'px',
+					'height': after.dim+'px',
+					'left': after.pos.x+'px',
+					'top': after.pos.y+'px'
+				}, 'normal', function() {
+					$(this).remove();
+				});
+			})();
+		}
 	};
 
 	var remainingVerbs = null;
@@ -85,10 +222,16 @@ $(function() {
 			}
 		}
 
-		var $questionVerb = $questionCtn.find('h2'),
+		var $questionVerb = $questionCtn.find('h2 .question-inner'),
+			$answerComment = $questionCtn.find('h2 .answer-comment'),
 			$declCtn = $questionCtn.find('.answers-container');
 
+		startChronometer();
+
+		var answerStartTime = (new Date()).getTime();
 		var updateScore = function() {
+			score.answersTime.push((new Date()).getTime() - answerStartTime);
+
 			var $goodProgress = $scoreCtn.find('.progress-bar-success'),
 				$badProgress = $scoreCtn.find('.progress-bar-danger');
 
@@ -101,11 +244,40 @@ $(function() {
 			$goodProgress.find('.sr-only').html(Math.round(goodPercentage) + '% ('+score.answers.good+' r&eacute;ussites)');
 			$badProgress.find('.sr-only').html(Math.round(badPercentage) + '% ('+score.answers.bad+' &eacute;checs)');
 
-			$scoreCtn.show();
+			if ($scoreCtn.is(':hidden')) {
+				$scoreCtn.slideDown();
+			}
+		};
+
+		var showAnswerComment = function(isGood) {
+			$answerComment.removeClass('text-success text-danger');
+
+			var comments = {
+				good: ['Good!','Well done!','Right!','Yeah!'],
+				bad: ['Bad!','Das ist schlecht!','Wrong!','Ouch...']
+			};
+
+			if (isGood) {
+				$answerComment.addClass('text-success');
+			} else {
+				$answerComment.addClass('text-danger');
+			}
+
+			var thisAnswerComments = comments[(isGood) ? 'good' : 'bad'];
+			var comment = thisAnswerComments[Math.round(Math.random() * (thisAnswerComments.length - 1))];
+			$answerComment.html(comment);
+
+			$answerComment.css({
+				opacity: 1
+			}).animate({
+				opacity: 0
+			}, 'slow');
 		};
 
 		var showAnswer = function () {
-			$nextBtn.show();
+			stopChronometer();
+
+			$answerActionsCtn.show();
 
 			$declCtn.children().off('click').addClass('btn-default').removeClass('btn-primary');
 			$declCtn.children('.answer').addClass('btn-success');
@@ -114,16 +286,18 @@ $(function() {
 			var isGood = ($declCtn.children('.clicked.answer').length > 0);
 			if (isGood) {
 				score.answers.good++;
+				showSuccessAnimation({ x: 100, y: 140 });
 			} else {
 				score.answers.bad++;
 			}
 			score.answers.total++;
 			updateScore();
+			showAnswerComment(isGood);
 		};
 
 		var paradoxalStar = (randomVerbData.type == 'paradoxal') ? '<span class="tooltip-container" data-toggle="tooltip" data-placement="bottom" title="This is a paradoxal verb. Irregular because its root changes, regular because it takes regular declinations.">*</span>' : '';
-		$questionCtn.find('h2').html(randomVerb+(paradoxalStar || '')+' ('+randomVerbMeaning+')').find('.tooltip-container').tooltip();
-		$nextBtn.hide();
+		$questionVerb.html(randomVerb+(paradoxalStar || '')+' <small>('+randomVerbMeaning+')</small>').find('.tooltip-container').tooltip();
+		$answerActionsCtn.hide();
 
 		$declCtn.empty();
 		var declNames = Object.keys(otherDecls);
@@ -149,8 +323,19 @@ $(function() {
 	};
 
 	var showEnd = function() {
-		$questionCtn.hide();
-		$endCtn.show();
+		var duration = score.endTime - score.startTime;
+		$endCtn.find('.score-time').find('.score-time-inner').html(formatTime(duration));
+
+		var timeSum = score.answersTime.reduce(function(a, b) { return a + b; });
+		score.answersTimeAvg = timeSum / score.answersTime.length;
+
+		score.result = (1/Math.sqrt(duration)*Math.sqrt(score.answers.good) + score.answers.good*10)*1000;
+
+		$endCtn.find('.score-result').html(Math.round(score.result));
+
+		$questionCtn.slideUp();
+		$chronoCtn.slideUp();
+		$endCtn.slideDown();
 
 		$scoreCtn.find('.progress-bar .sr-only').removeClass('sr-only');
 	};
@@ -162,6 +347,16 @@ $(function() {
 
 	$nextBtn.click(function (e) {
 		nextQuestion();
+		e.preventDefault();
+	});
+
+	$stopBtn.click(function (e) {
+		showEnd();
+		e.preventDefault();
+	});
+
+	$restartBtn.click(function (e) {
+		showStart();
 		e.preventDefault();
 	});
 

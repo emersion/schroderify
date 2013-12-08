@@ -1,10 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" manifest="manifests/schroderify.appcache">
 <head>
 	<meta charset="UTF-8">
 	<title>Schr&ouml;derify</title>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="icon" type="image/png" href="img/icon-32.png" />
+	<link rel="apple-touch-icon-precomposed" href="img/icon-128.png">
 
 	<!-- Bootstrap -->
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
@@ -40,7 +43,7 @@
 
 			<p>What do you want to learn ?</p>
 			<div class="btn-group btn-group-lg">
-				<button type="button" class="btn btn-primary">Irregular verbs</button>
+				<a href="irregular-vbs.html" class="btn btn-primary">Irregular verbs</a>
 			</div>
 		</div>
 	</div>
@@ -51,7 +54,8 @@
 		<p>&copy; 2013 <a href="http://emersion.fr">Emersion</a></p>
 	</footer>
 
-	<script src="https://code.jquery.com/jquery.js"></script>
+	<!-- jQuery -->
+	<script src="js/jquery-2.0.3.min.js"></script>
 	<!-- Bootstrap -->
 	<script src="js/bootstrap.min.js"></script>
 </body>

@@ -17,6 +17,7 @@ CACHE MANIFEST
 ../fonts/glyphicons-halflings-regular.woff
 
 # IMG
+../img/firefox-marketplace.png
 ../img/icon-128.png
 ../img/icon-32.png
 ../img/icon-48.png

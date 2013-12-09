@@ -19,6 +19,9 @@ $(function() {
 	};
 
 	var $startCtn = $('#start'),
+		$startBtn = $startCtn.find('.start a'),
+		$customizeBtn = $startCtn.find('.customize a'),
+		$loadingCtn = $('#loading'),
 		$questionCtn = $('#question'),
 		$endCtn = $('#end'),
 		$scoreCtn = $('#score'),
@@ -26,9 +29,10 @@ $(function() {
 		$answerActionsCtn = $questionCtn.find('.answer-actions'),
 		$nextBtn = $answerActionsCtn.find('.next a'),
 		$stopBtn = $answerActionsCtn.find('.stop a'),
-		$restartBtn = $endCtn.find('.restart a');
+		$restartBtn = $endCtn.find('.restart a'),
+		$customizeCtn = $('#customize-modal');
 
-	var formatTime = function(duration) {
+	var formatTime = function (duration) {
 		var time = new Date(duration);
 
 		var durMinutes = time.getMinutes(),
@@ -61,6 +65,7 @@ $(function() {
 
 		if (firstStart) {
 			$startCtn.show();
+			$loadingCtn.hide();
 			$questionCtn.hide();
 			$endCtn.hide();
 			$scoreCtn.hide();
@@ -74,7 +79,7 @@ $(function() {
 		firstStart = false;
 	};
 
-	var setConfig = function() {
+	var setConfig = function () {
 		var $questionsNbr = $startCtn.find('.cfg-questions-nbr'),
 			$chrono = $startCtn.find('.cfg-chrono');
 
@@ -83,7 +88,7 @@ $(function() {
 	};
 
 	var chronoIntervalId = null;
-	var startChronometer = function() {
+	var startChronometer = function () {
 		if (!score.startTime) {
 			score.startTime = (new Date()).getTime();
 		}
@@ -99,7 +104,7 @@ $(function() {
 		if (config.chronometer) {
 			var $chrono = $chronoCtn.find('.chronometer-inner');
 
-			var updateChrono = function() {
+			var updateChrono = function () {
 				var duration = (new Date()).getTime() - score.startTime;
 				var durationSeconds = Math.round(duration / 1000);
 
@@ -110,13 +115,13 @@ $(function() {
 				$chrono.html(formatTime(durationSeconds * 1000));
 			};
 
-			chronoIntervalId = setInterval(function() {
+			chronoIntervalId = setInterval(function () {
 				updateChrono();
 			}, 1000);
 			updateChrono();
 		}
 	};
-	var stopChronometer = function() {
+	var stopChronometer = function () {
 		score.endTime = (new Date()).getTime();
 
 		if (!chronoIntervalId) { //Not started
@@ -133,10 +138,9 @@ $(function() {
 		$startCtn.slideUp();
 		setConfig();
 
-		$.ajax({
-			url: 'db/verbs.json',
-			dataType: 'json'
-		}).done(function(data) {
+		$loadingCtn.slideDown();
+
+		Schroderify.pullDb('verbs').done(function(data) {
 			verbs = data.verbs;
 			declinations = data.declinations;
 
@@ -147,16 +151,18 @@ $(function() {
 			}
 
 			nextQuestion();
-		}).fail(function() {
-			alert('Sausage Potatoe Digital error.');
+		}).fail(function(msg) {
+			alert('Sausage Potatoe Digital error ('+msg+')');
+		}).always(function () {
+			$loadingCtn.slideUp();
 		});
 	};
 
-	var showSuccessAnimation = function(centerPos) {
+	var showSuccessAnimation = function (centerPos) {
 		var $successCircle = $('<div></div>').addClass('question-success');
 
 		for (var i = 0; i < 0; i++) {
-			(function() {
+			(function () {
 				var $circle = $successCircle.clone();
 
 				var before = {
@@ -229,7 +235,7 @@ $(function() {
 		startChronometer();
 
 		var answerStartTime = (new Date()).getTime();
-		var updateScore = function() {
+		var updateScore = function () {
 			score.answersTime.push((new Date()).getTime() - answerStartTime);
 
 			var $goodProgress = $scoreCtn.find('.progress-bar-success'),
@@ -249,7 +255,7 @@ $(function() {
 			}
 		};
 
-		var showAnswerComment = function(isGood) {
+		var showAnswerComment = function (isGood) {
 			$answerComment.removeClass('text-success text-danger');
 
 			var comments = {
@@ -322,7 +328,7 @@ $(function() {
 		}
 	};
 
-	var showEnd = function() {
+	var showEnd = function () {
 		var duration = score.endTime - score.startTime;
 		$endCtn.find('.score-time').find('.score-time-inner').html(formatTime(duration));
 
@@ -340,8 +346,88 @@ $(function() {
 		$scoreCtn.find('.progress-bar .sr-only').removeClass('sr-only');
 	};
 
-	$startCtn.find('a').click(function (e) {
+	var customizeDbLoaded = false;
+	var showCustomizeVerbs = function () {
+		var $loadingCtn = $customizeCtn.find('.loading-ctn'),
+			$customizeTable = $customizeCtn.find('table'),
+			$customizeTbody = $customizeTable.find('tbody');
+
+		if (customizeDbLoaded) {
+			return;
+		}
+
+		var verbsHandlers = {};
+		var addToVerbsList = function (data) {
+			var $declList = $('<select></select>');
+			for (var declName in data.declinations) {
+				$declList.append('<option name="'+declName+'">'+data.declinations[declName].join(', ')+'</option>');
+			}
+
+			for (var verbName in data.verbs) {
+				(function(verbName, verbData) {
+					var $row = $('<tr></tr>');
+
+					var $enableCheckbox = $('<input />', { type: 'checkbox', checked: 'checked' });
+					$('<td></td>').append($enableCheckbox).appendTo($row);
+
+					$row.append('<td>'+verbName+'</td>');
+
+					var $verbDeclList = $declList.clone();
+					$verbDeclList.find('option[name="'+verbData.declination+'"]').attr('selected','selected');
+					$('<td></td>').append($verbDeclList).appendTo($row);
+
+					var $meaning = $('<input />', { type: 'text', value: verbData.meaning.fr_FR });
+					$('<td></td>').append($meaning).appendTo($row);
+
+					verbsHandlers[verbName] = function () {
+						var verbNewData = {};
+
+						if (!$enableCheckbox.is(':checked')) {
+							verbNewData.disabled = true;
+						}
+
+						if ($verbDeclList.val() != verbData.declination) {
+							verbNewData.declination = $verbDeclList.val();
+						}
+
+						if ($meaning.val() != verbData.meaning.fr_FR) {
+							verbNewData.meaning = { fr_FR: $meaning.val() };
+						}
+
+						return verbNewData;
+					};
+
+					$row.appendTo($customizeTbody);
+				})(verbName, data.verbs[verbName]);
+			}
+		};
+		var showVerbsList = function (data) {
+			$customizeTbody.empty();
+			addToVerbsList(data);
+		};
+
+		$customizeTable.hide();
+
+		Schroderify.pullRemoteDb('verbs').done(function (remoteData) {
+			$customizeTable.show();
+			customizeDbLoaded = true;
+
+			showVerbsList(remoteData);
+		}).fail(function (msg) {
+			alert('Sausage Potatoe Digital error ('+msg+')');
+		}).always(function () {
+			$loadingCtn.slideUp();
+		});
+	};
+	var saveCustomizeVerbs = function () {};
+
+	$startBtn.click(function (e) {
 		startQuestions();
+		e.preventDefault();
+	});
+
+	$customizeBtn.click(function (e) {
+		showCustomizeVerbs();
 		e.preventDefault();
 	});
 

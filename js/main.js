@@ -1,6 +1,10 @@
 (function() {
 	var Schroderify = {};
 
+	Schroderify.supportsLocalDb = function () {
+		return (typeof window.localStorage != 'undefined');
+	};
+
 	Schroderify._remoteDbs = {};
 	Schroderify.pullRemoteDb = function (dbName) {
 		var deffered = jQuery.Deferred();
@@ -27,7 +31,7 @@
 	};
 
 	Schroderify.pullLocalDb = function (dbName) {
-		if (!window.localStorage) {
+		if (!Schroderify.supportsLocalDb()) {
 			return null;
 		}
 
@@ -64,7 +68,21 @@
 		return deffered;
 	};
 
-	Schroderify.pushLocalDb = function (dbName, data) {};
+	Schroderify.pushLocalDb = function (dbName, data) {
+		if (!Schroderify.supportsLocalDb()) {
+			return false;
+		}
+
+		var localDbName = 'db.'+dbName;
+
+		var json = JSON.stringify(data);
+
+		if (!json) {
+			return null;
+		}
+
+		return localStorage.setItem(localDbName, json);
+	};
 
 	window.Schroderify = Schroderify; //Export API
 })();

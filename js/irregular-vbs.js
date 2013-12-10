@@ -30,7 +30,9 @@ $(function() {
 		$nextBtn = $answerActionsCtn.find('.next a'),
 		$stopBtn = $answerActionsCtn.find('.stop a'),
 		$restartBtn = $endCtn.find('.restart a'),
-		$customizeCtn = $('#customize-modal');
+		$customizeCtn = $('#customize-modal'),
+		$customizeSaveBtn = $customizeCtn.find('.customize-save'),
+		$customizeAddBtn = $customizeCtn.find('.customize-add');
 
 	var formatTime = function (duration) {
 		var time = new Date(duration);
@@ -214,9 +216,15 @@ $(function() {
 		var randomIndex = Math.round(Math.random() * (Object.keys(remainingVerbs).length - 1)),
 			randomVerb = Object.keys(remainingVerbs)[randomIndex],
 			randomVerbData = verbs[randomVerb],
-			randomVerbMeaning = randomVerbData.meaning.fr_FR;
+			randomVerbMeaning = randomVerbData.meaning.fr_FR,
+			randomVerbDisabled = randomVerbData.disabled;
 
 		delete remainingVerbs[randomVerb];
+
+		if (randomVerbDisabled) { //Skip this one
+			nextQuestion();
+			return;
+		}
 
 		var verbDecl = declinations[randomVerbData.declination];
 
@@ -346,7 +354,7 @@ $(function() {
 		$scoreCtn.find('.progress-bar .sr-only').removeClass('sr-only');
 	};
 
-	var customizeDbLoaded = false;
+	var customizeDbLoaded = false, verbsHandlers = {};
 	var showCustomizeVerbs = function () {
 		var $loadingCtn = $customizeCtn.find('.loading-ctn'),
 			$customizeTable = $customizeCtn.find('table'),
@@ -356,28 +364,48 @@ $(function() {
 			return;
 		}
 
-		var verbsHandlers = {};
 		var addToVerbsList = function (data) {
-			var $declList = $('<select></select>');
+			if (!data) {
+				return;
+			}
+
+			var $declList = $('<select></select>').addClass('input-group');
 			for (var declName in data.declinations) {
-				$declList.append('<option name="'+declName+'">'+data.declinations[declName].join(', ')+'</option>');
+				$declList.append('<option value="'+declName+'">'+data.declinations[declName].join(', ')+'</option>');
 			}
 
 			for (var verbName in data.verbs) {
 				(function(verbName, verbData) {
 					var $row = $('<tr></tr>');
 
-					var $enableCheckbox = $('<input />', { type: 'checkbox', checked: 'checked' });
+					var $enableCheckbox = $('<input />', { type: 'checkbox' });
+					if (!verbData.disabled) {
+						$enableCheckbox.attr('checked', 'checked');
+					}
 					$('<td></td>').append($enableCheckbox).appendTo($row);
 
 					$row.append('<td>'+verbName+'</td>');
 
 					var $verbDeclList = $declList.clone();
-					$verbDeclList.find('option[name="'+verbData.declination+'"]').attr('selected','selected');
+					$verbDeclList.val(verbData.declination);
 					$('<td></td>').append($verbDeclList).appendTo($row);
 
-					var $meaning = $('<input />', { type: 'text', value: verbData.meaning.fr_FR });
-					$('<td></td>').append($meaning).appendTo($row);
+					var $inputGroup = $('<div></div>').addClass('input-group');
+					var $meaning = $('<input />', { type: 'text', value: (verbData.meaning) ? verbData.meaning.fr_FR : '' }).addClass('form-control').appendTo($inputGroup);
+					if (verbData.place == 'local') {
+						var $btns = $('<span></span>')
+							.addClass('input-group-btn')
+							.appendTo($inputGroup);
+						var $deleteBtn = $('<button></button>', { type: 'button' })
+							.addClass('btn btn-danger')
+							.html('<span class="glyphicon glyphicon-trash"></span>')
+							.click(function() {
+								$row.remove();
+								verbsHandlers[verbName] = function () { return false; };
+							})
+							.appendTo($btns);
+					}
+					$('<td></td>').append($inputGroup).appendTo($row);
 
 					verbsHandlers[verbName] = function () {
 						var verbNewData = {};
@@ -401,25 +429,48 @@ $(function() {
 				})(verbName, data.verbs[verbName]);
 			}
 		};
-		var showVerbsList = function (data) {
-			$customizeTbody.empty();
-			addToVerbsList(data);
-		};
 
 		$customizeTable.hide();
+		$customizeTbody.empty();
+		verbsHandlers = {};
 
-		Schroderify.pullRemoteDb('verbs').done(function (remoteData) {
+		var localData = Schroderify.pullLocalDb('verbs');
+
+		Schroderify.pullRemoteDb('verbs').done(function (data) {
 			$customizeTable.show();
 			customizeDbLoaded = true;
 
-			showVerbsList(remoteData);
+			for (var verbName in localData.verbs) {
+				if (data.verbs[verbName]) {
+					data.verbs[verbName] = $.extend(true, {}, data.verbs[verbName], localData.verbs[verbName], { place: 'local' });
+				} else {
+					data.verbs[verbName] = localData.verbs[verbName];
+				}
+			}
+
+			addToVerbsList(data);
 		}).fail(function (msg) {
 			alert('Sausage Potatoe Digital error ('+msg+')');
+
+			addToVerbsList(localData, true);
 		}).always(function () {
 			$loadingCtn.slideUp();
 		});
 	};
-	var saveCustomizeVerbs = function () {};
+	var saveCustomizeVerbs = function () {
+		var localData = {};
+		for (var verbName in verbsHandlers) {
+			verbData = verbsHandlers[verbName]();
+
+			if (verbData && Object.keys(verbData).length > 0) {
+				localData[verbName] = verbData;
+			}
+		}
+
+		Schroderify.pushLocalDb('verbs', { verbs: localData });
+
+		$customizeCtn.modal('hide');
+	};
 
 	$startBtn.click(function (e) {
 		startQuestions();
@@ -430,6 +481,9 @@ $(function() {
 		showCustomizeVerbs();
 		e.preventDefault();
 	});
+	if (!Schroderify.supportsLocalDb()) {
+		$customizeBtn.hide();
+	}
 
 	$nextBtn.click(function (e) {
 		nextQuestion();
@@ -444,6 +498,10 @@ $(function() {
 	$restartBtn.click(function (e) {
 		showStart();
 		e.preventDefault();
+	});
+
+	$customizeSaveBtn.click(function () {
+		saveCustomizeVerbs();
 	});
 
 	showStart();

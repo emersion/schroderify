@@ -392,7 +392,7 @@ $(function() {
 
 					var $inputGroup = $('<div></div>').addClass('input-group');
 					var $meaning = $('<input />', { type: 'text', value: (verbData.meaning) ? verbData.meaning.fr_FR : '' }).addClass('form-control').appendTo($inputGroup);
-					if (verbData.place == 'local') {
+					if (verbData.places === ['local']) {
 						var $btns = $('<span></span>')
 							.addClass('input-group-btn')
 							.appendTo($inputGroup);
@@ -442,9 +442,10 @@ $(function() {
 
 			for (var verbName in localData.verbs) {
 				if (data.verbs[verbName]) {
-					data.verbs[verbName] = $.extend(true, {}, data.verbs[verbName], localData.verbs[verbName], { place: 'local' });
+					data.verbs[verbName] = $.extend(true, {}, data.verbs[verbName], localData.verbs[verbName], { places: ['local','remote'] });
 				} else {
 					data.verbs[verbName] = localData.verbs[verbName];
+					data.verbs[verbName].places = ['local'];
 				}
 			}
 

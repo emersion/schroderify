@@ -31,8 +31,7 @@ $(function() {
 		$stopBtn = $answerActionsCtn.find('.stop a'),
 		$restartBtn = $endCtn.find('.restart a'),
 		$customizeCtn = $('#customize-modal'),
-		$customizeSaveBtn = $customizeCtn.find('.customize-save'),
-		$customizeAddBtn = $customizeCtn.find('.customize-add');
+		$customizeSaveBtn = $customizeCtn.find('.customize-save');
 
 	var formatTime = function (duration) {
 		var time = new Date(duration);
@@ -354,15 +353,11 @@ $(function() {
 		$scoreCtn.find('.progress-bar .sr-only').removeClass('sr-only');
 	};
 
-	var customizeDbLoaded = false, verbsHandlers = {};
+	var verbsHandlers = {};
 	var showCustomizeVerbs = function () {
 		var $loadingCtn = $customizeCtn.find('.loading-ctn'),
 			$customizeTable = $customizeCtn.find('table'),
 			$customizeTbody = $customizeTable.find('tbody');
-
-		if (customizeDbLoaded) {
-			return;
-		}
 
 		var addToVerbsList = function (data) {
 			if (!data) {
@@ -378,74 +373,135 @@ $(function() {
 				(function(verbName, verbData) {
 					var $row = $('<tr></tr>');
 
-					var $enableCheckbox = $('<input />', { type: 'checkbox' });
-					if (!verbData.disabled) {
-						$enableCheckbox.attr('checked', 'checked');
-					}
-					$('<td></td>').append($enableCheckbox).appendTo($row);
-
-					$row.append('<td>'+verbName+'</td>');
-
-					var $verbDeclList = $declList.clone();
-					$verbDeclList.val(verbData.declination);
-					$('<td></td>').append($verbDeclList).appendTo($row);
-
-					var $inputGroup = $('<div></div>').addClass('input-group');
-					var $meaning = $('<input />', { type: 'text', value: (verbData.meaning) ? verbData.meaning.fr_FR : '' }).addClass('form-control').appendTo($inputGroup);
-					if (verbData.places === ['local']) {
-						var $btns = $('<span></span>')
-							.addClass('input-group-btn')
-							.appendTo($inputGroup);
-						var $deleteBtn = $('<button></button>', { type: 'button' })
-							.addClass('btn btn-danger')
-							.html('<span class="glyphicon glyphicon-trash"></span>')
-							.click(function() {
-								$row.remove();
-								verbsHandlers[verbName] = function () { return false; };
-							})
-							.appendTo($btns);
-					}
-					$('<td></td>').append($inputGroup).appendTo($row);
-
-					verbsHandlers[verbName] = function () {
-						var verbNewData = {};
-
-						if (!$enableCheckbox.is(':checked')) {
-							verbNewData.disabled = true;
+					var fillRow = function (verbData) {
+						var $enableCheckbox = $('<input />', { type: 'checkbox' });
+						if (!verbData.disabled) {
+							$enableCheckbox.attr('checked', 'checked');
 						}
+						$('<td></td>').append($enableCheckbox).appendTo($row);
 
-						if ($verbDeclList.val() != verbData.declination) {
-							verbNewData.declination = $verbDeclList.val();
+						$row.append('<td>'+verbName+'</td>');
+
+						var $verbDeclList = $declList.clone();
+						$verbDeclList.val(verbData.declination);
+						$('<td></td>').append($verbDeclList).appendTo($row);
+
+						var $inputGroup = $('<div></div>').addClass('input-group');
+						var $meaning = $('<input />', { type: 'text', value: (verbData.meaning) ? verbData.meaning.fr_FR : '' }).addClass('form-control').appendTo($inputGroup);
+
+						if ($.inArray('local', verbData.places) !== -1) {
+							var $btns = $('<span></span>')
+								.addClass('input-group-btn')
+								.appendTo($inputGroup);
+
+							if ($.inArray('remote', verbData.places) === -1) {
+								var $deleteBtn = $('<button></button>', { type: 'button' })
+									.addClass('btn btn-danger')
+									.html('<span class="glyphicon glyphicon-trash"></span>')
+									.click(function() {
+										$row.remove();
+										verbsHandlers[verbName] = function () { return false; };
+									})
+									.appendTo($btns);
+							} else {
+								var $deleteBtn = $('<button></button>', { type: 'button' })
+									.addClass('btn btn-warning')
+									.html('<span class="glyphicon glyphicon-backward"></span>')
+									.click(function() {
+										$row.empty();
+										var remoteVerbData = remoteData.verbs[verbName];
+										remoteVerbData.places = ['remote'];
+										fillRow(remoteVerbData);
+									})
+									.appendTo($btns);
+							}
+						} else {
+							$inputGroup.removeClass('input-group');
 						}
+						$('<td></td>').append($inputGroup).appendTo($row);
 
-						if ($meaning.val() != verbData.meaning.fr_FR) {
-							verbNewData.meaning = { fr_FR: $meaning.val() };
-						}
+						verbsHandlers[verbName] = function () {
+							var verbNewData = {};
 
-						return verbNewData;
+							if (!$enableCheckbox.is(':checked')) {
+								verbNewData.disabled = true;
+							}
+
+							if ($verbDeclList.val() != verbData.declination) {
+								verbNewData.declination = $verbDeclList.val();
+							}
+
+							if ($meaning.val() != verbData.meaning.fr_FR) {
+								verbNewData.meaning = { fr_FR: $meaning.val() };
+							}
+
+							return verbNewData;
+						};
 					};
+
+					fillRow(verbData);
 
 					$row.appendTo($customizeTbody);
 				})(verbName, data.verbs[verbName]);
 			}
 		};
 
+		var showAddVerbBtn = function () {
+			var $row = $('<tr></tr>');
+
+			$('<td></td>').appendTo($row);
+
+			var $inputGroup = $('<div></div>').addClass('input-group');
+			var $verbName = $('<input />', { type: 'text' }).addClass('form-control').appendTo($inputGroup);
+
+			var $btns = $('<span></span>')
+				.addClass('input-group-btn')
+				.appendTo($inputGroup);
+
+			var $addBtn = $('<button></button>', { type: 'button' })
+				.addClass('btn btn-success')
+				.html('<span class="glyphicon glyphicon-plus"></span>')
+				.click(function() {
+					var addData = { verbs:{}, declinations: remoteData.declinations };
+					addData.verbs[$verbName.val()] = {
+						declination: '',
+						meaning: {
+							fr_FR: ''
+						},
+						places: ['local']
+					};
+					addToVerbsList(addData);
+
+					$row.detach().appendTo($customizeTbody);
+				})
+				.appendTo($btns);
+
+			$('<td></td>', { colspan: '3' }).append($inputGroup).appendTo($row);
+
+			$row.appendTo($customizeTbody);
+		};
+
 		$customizeTable.hide();
 		$customizeTbody.empty();
 		verbsHandlers = {};
 
-		var localData = Schroderify.pullLocalDb('verbs');
+		var localData = Schroderify.pullLocalDb('verbs'), remoteData;
 
-		Schroderify.pullRemoteDb('verbs').done(function (data) {
+		Schroderify.pullRemoteDb('verbs').done(function (receivedData) {
 			$customizeTable.show();
 			customizeDbLoaded = true;
 
-			for (var verbName in localData.verbs) {
-				if (data.verbs[verbName]) {
-					data.verbs[verbName] = $.extend(true, {}, data.verbs[verbName], localData.verbs[verbName], { places: ['local','remote'] });
-				} else {
-					data.verbs[verbName] = localData.verbs[verbName];
-					data.verbs[verbName].places = ['local'];
+			remoteData = receivedData;
+			var data = $.extend(true, {}, remoteData);
+
+			if (localData) {
+				for (var verbName in localData.verbs) {
+					if (data.verbs[verbName]) {
+						data.verbs[verbName] = $.extend(true, {}, data.verbs[verbName], localData.verbs[verbName], { places: ['local','remote'] });
+					} else {
+						data.verbs[verbName] = localData.verbs[verbName];
+						data.verbs[verbName].places = ['local'];
+					}
 				}
 			}
 
@@ -453,15 +509,17 @@ $(function() {
 		}).fail(function (msg) {
 			alert('Sausage Potatoe Digital error ('+msg+')');
 
-			addToVerbsList(localData, true);
+			addToVerbsList(localData);
 		}).always(function () {
 			$loadingCtn.slideUp();
+
+			showAddVerbBtn();
 		});
 	};
 	var saveCustomizeVerbs = function () {
 		var localData = {};
 		for (var verbName in verbsHandlers) {
-			verbData = verbsHandlers[verbName]();
+			var verbData = verbsHandlers[verbName]();
 
 			if (verbData && Object.keys(verbData).length > 0) {
 				localData[verbName] = verbData;
@@ -485,12 +543,14 @@ $(function() {
 	if (!Schroderify.supportsLocalDb()) {
 		$customizeBtn.hide();
 	}
+	$customizeSaveBtn.click(function () {
+		saveCustomizeVerbs();
+	});
 
 	$nextBtn.click(function (e) {
 		nextQuestion();
 		e.preventDefault();
 	});
-
 	$stopBtn.click(function (e) {
 		showEnd();
 		e.preventDefault();
@@ -499,10 +559,6 @@ $(function() {
 	$restartBtn.click(function (e) {
 		showStart();
 		e.preventDefault();
-	});
-
-	$customizeSaveBtn.click(function () {
-		saveCustomizeVerbs();
 	});
 
 	showStart();

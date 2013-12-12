@@ -39,7 +39,7 @@
 	<div id="start" class="container">
 		<h1>Irregular verbs</h1>
 
-		<div class="btn-group btn-group-lg btn-group-justified">
+		<div class="btn-group btn-group-lg btn-group-justified start">
 			<a href="#" class="btn btn-primary">Start!</a>
 		</div>
 
@@ -65,7 +65,17 @@
 					</div>
 				</label>
 			</div>
+			<div class="col-xs-12 col-sm-4 col-md-2">
+				<br />
+				<div class="btn-group btn-group-justified customize">
+					<a href="#" class="btn btn-default" data-toggle="modal" data-target="#customize-modal">Customize verbs</a>
+				</div>
+			</div>
 		</div>
+	</div>
+
+	<div id="loading" class="container">
+		<div class="alert alert-info"><strong>Loading...</strong> (waiting for Schr&ouml;der to transmit answers)</div>
 	</div>
 
 	<div id="question" class="container">
@@ -120,6 +130,36 @@
 		<h2 class="text-center"><span class="label label-default chronometer-inner">0s</span></h2>
 	</div>
 
+	<div id="customize-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="customize-modal-label" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title" id="customize-modal-label">Customize verbs</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert alert-info loading-ctn"><strong>Loading...</strong> (waiting for Schr&ouml;der to transmit answers)</div>
+
+					<table class="table table-hover table-responsive">
+						<thead>
+							<tr>
+								<th></th>
+								<th>Verb</th>
+								<th>Declination</th>
+								<th>Meaning</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary customize-save">Save changes</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div>
+
 	<footer class="container">
 		<hr />
 		<p class="pull-right">Powered by Mme Chiche</p>
@@ -131,6 +171,8 @@
 	<!-- Bootstrap -->
 	<script src="js/bootstrap.min.js"></script>
 
+	<!-- Schroderify -->
+	<script src="js/main.js"></script>
 	<script src="js/irregular-vbs.js"></script>
 </body>
 </html>

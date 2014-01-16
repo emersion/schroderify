@@ -225,6 +225,11 @@ $(function() {
 			return;
 		}
 
+		if (typeof randomVerbData.declination != 'string') { //Not supported for now
+			nextQuestion();
+			return;
+		}
+
 		var verbDecl = declinations[randomVerbData.declination];
 
 		var otherDecls = {};
@@ -371,6 +376,10 @@ $(function() {
 
 			for (var verbName in data.verbs) {
 				(function(verbName, verbData) {
+					if (typeof verbData.declination != 'string') { //Not supported
+						return;
+					}
+
 					var $row = $('<tr></tr>');
 
 					var fillRow = function (verbData) {

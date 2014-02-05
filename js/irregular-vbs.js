@@ -225,21 +225,6 @@ $(function() {
 			return;
 		}
 
-		if (typeof randomVerbData.declination != 'string') { //Not supported for now
-			nextQuestion();
-			return;
-		}
-
-		var verbDecl = declinations[randomVerbData.declination];
-
-		var otherDecls = {};
-		for (var declName in declinations) {
-			var declPattern = declinations[declName];
-			if (declPattern[0] == verbDecl[0]) {
-				otherDecls[declName] = declPattern;
-			}
-		}
-
 		var $questionVerb = $questionCtn.find('h2 .question-inner'),
 			$answerComment = $questionCtn.find('h2 .answer-comment'),
 			$declCtn = $questionCtn.find('.answers-container');
@@ -317,26 +302,58 @@ $(function() {
 		$questionVerb.html(randomVerb+(paradoxalStar || '')+' <small>('+randomVerbMeaning+')</small>').find('.tooltip-container').tooltip();
 		$answerActionsCtn.hide();
 
-		$declCtn.empty();
-		var declNames = Object.keys(otherDecls);
-		declNames = shuffleArray(declNames);
-		for (var i = 0; i < declNames.length; i++) {
-			var declName = declNames[i];
-			(function(declName, declPattern) {
-				var $decl = $('<label></label>').addClass('btn btn-primary');
-				$decl.append('<input type="radio"> '+declPattern.join(', '));
+		var answers = [];
+		if (!randomVerbData.declination) {
+			var slashIndex = randomVerb.indexOf('/');
+			if (typeof slashIndex == 'number' && slashIndex >= 0) {
+				var baseVerb = randomVerb.slice(slashIndex + 1);
+				randomVerbData.declination = verbs[baseVerb].declination;
 
-				$decl.click(function() {
-					$decl.addClass('clicked');
+				//TODO: add separated part in declinations if it is an array
+			}
+		}
+		if (randomVerbData.declination instanceof Array) {
+			var verbDeclList = randomVerbData.declination;
+			answers.push({
+				value: verbDeclList.join(', '),
+				correct: true
+			});
+
+			//TODO: random answers
+		} else {
+			var verbDecl = declinations[randomVerbData.declination];
+
+			for (var declName in declinations) {
+				var declPattern = declinations[declName];
+				if (declPattern[0] == verbDecl[0]) {
+					answers.push({
+						value: declPattern.join(', '),
+						correct: (randomVerbData.declination == declName)
+					});
+				}
+			}
+
+			//TODO: random answers if there is only one
+		}
+
+		$declCtn.empty();
+		answers = shuffleArray(answers);
+		for (var i = 0; i < answers.length; i++) {
+			(function(ans) {
+				var $ans = $('<label></label>').addClass('btn btn-primary');
+				$ans.append('<input type="radio"> '+ans.value);
+
+				$ans.click(function() {
+					$ans.addClass('clicked');
 					showAnswer();
 				});
 
-				if (randomVerbData.declination == declName) {
-					$decl.addClass('answer');
+				if (ans.correct) {
+					$ans.addClass('answer');
 				}
 
-				$declCtn.append($decl);
-			})(declName, declinations[declName]);
+				$declCtn.append($ans);
+			})(answers[i]);
 		}
 	};
 
